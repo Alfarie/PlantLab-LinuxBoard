@@ -1,6 +1,11 @@
 var io = null;
 var sensors = require('./sensors')
-var reqmcu = require('./request-mcu');
+var reqmcu = require('./mcu-ui');
+var serial = require('./serial');
+
+var Rx = require('rxjs');
+
+var emitsubject = new Rx.Subject();
 
 var InitSocketIO = function(socketio) {
     io = socketio;
@@ -11,13 +16,21 @@ var InitSocketIO = function(socketio) {
         socket.on('SHORT_LOGGER_REQ', function() {
             socket.emit('SHORT_LOGGER_REP', sensors.shortLogger);
         });
-
         socket.on('REQ_SETTING', function() {
-            reqmcu.SendString("{cmd, req_setting}");
+            serial.msgMcuSub.next("{cmd, req_setting}")
         });
     });
     return io;
 }
-
-
-module.exports.InitSocketIO = InitSocketIO;
+var emitsubscribe = emitsubject.subscribe(
+    (data) => {
+        io.to(data[0]).emit(data[1], data[2])
+    },
+    (err) => {},
+    () => {}
+)
+module.exports = {
+    InitSocketIO: InitSocketIO,
+    io: io,
+    emitsubject: emitsubject
+}

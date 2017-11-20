@@ -5,7 +5,7 @@ var path = require('path');
 
 // socket.io module --> use io for declare event or emit
 var io = require('socket.io')(http);
-io = require('./modules/socket-service').InitSocketIO(io);
+
 
 //module for connect to could
 // var client = require('./modules/client-server')
@@ -22,9 +22,8 @@ var port = ser.port;
 var sensors = require('./modules/sensors');
 
 // communication part to mcu --> require socket.io and serial
-var request_mcu = require('./modules/request-mcu');
-request_mcu.setSerial(parser, io); // set serial and socket.io
-request_mcu.setWritePort(port)
+var request_mcu = require('./modules/mcu-ui');
+io = require('./modules/ui-mcu').InitSocketIO(io);
 
 var logger = require('./modules/datalogger');
 logger.start();

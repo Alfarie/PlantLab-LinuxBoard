@@ -5,6 +5,12 @@ var fs = require('fs');
 var port = null;
 var parser = null;
 var isConnected = false;
+var Rx = require('rxjs/Rx');
+
+
+var mcuMsg = new Rx.Subject();
+var msgMcu = new Rx.Subject();
+
 var scanPort = function() {
     var flag = false;
     console.log("[Info] Scanning...")
@@ -21,6 +27,9 @@ var scanPort = function() {
                 console.log(err);
                 isConnected = false;
             })
+            parser.on('data', (data) => {
+                mcuMsg.next(data);
+            })
             flag = true;
             isConnected = true;
             break;
@@ -29,7 +38,6 @@ var scanPort = function() {
     return flag;
 }
 
-
 scanPort();
 setInterval(() => {
     if (!isConnected) {
@@ -37,10 +45,21 @@ setInterval(() => {
     }
 }, 1000);
 
+var msgMcuSub = msgMcu.subscribe(
+    (data) => {
+        // port.write(data);
+    },
+    (err) => {
 
+    },
+    () => {
 
+    }
+)
 
 module.exports = {
     port: port,
-    parser: parser
+    parser: parser,
+    mcuMsg: mcuMsg,
+    msgMcuSub: msgMcuSub
 }
